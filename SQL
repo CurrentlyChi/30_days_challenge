@@ -26,4 +26,55 @@ from
 group by 
     id_guest
 
+#question3:
+Find the date with the highest total energy consumption from the Meta/Facebook data centers. Output the date along with the total energy consumption across all data centers.
+
+
+My anwser: 
+
+with cte as (
+    select 
+        date,
+        sum(consumption) as consumption
+    from (
+        select * from fb_eu_energy 
+        union 
+        select * from fb_asia_energy 
+        union 
+        select * from fb_na_energy ) as temp
+    group by 
+        date)
+
+select * from cte
+where consumption = (select Max(consumption) from cte)
+
+#question 4:
+Meta/Facebook is quite keen on pushing their new programming language Hack to all their offices. They ran a survey to quantify the popularity of the language and send it to their employees. To promote Hack they have decided to pair developers which love Hack with the ones who hate it so the fans can convert the opposition. Their pair criteria is to match the biggest fan with biggest opposition, second biggest fan with second biggest opposition, and so on. Write a query which returns this pairing. Output employee ids of paired employees. 
+Sort users with the same popularity value by id in ascending order.
+Duplicates in pairings can be left in the solution. For example, (2, 3) and (3, 2) should both be in the solution.
+
+My anwser: 
+-- columns: pairing same popularity values by id in ascending order
+with t1 as (
+    select 
+        employee_id,
+        row_number() over (order by popularity, employee_id asc ) order_one
+    from
+        facebook_hack_survey
+), t2 as (
+    select 
+        employee_id,
+        row_number() over (order by popularity desc, employee_id asc) order_two
+    from
+        facebook_hack_survey
+)
+
+select 
+    t2.employee_id as approve,
+    t1.employee_id as opposition
+from
+    t1 
+join
+    t2 on t1.order_one = t2.order_two
+
 
